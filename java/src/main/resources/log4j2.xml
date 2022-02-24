@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+
+  <Appenders>
+    <Lambda name="Lambda">
+      <PatternLayout>
+        <!-- alwaysWritExceptions: true -->
+        <pattern>%d{ISO8601} [%p] (%c) %m %ex%n</pattern>
+      </PatternLayout>
+    </Lambda>
+  </Appenders>
+
+  <Loggers>
+    <Root level="debug">
+      <AppenderRef ref="Lambda"/>
+    </Root>
+  </Loggers>
+
+</Configuration>
