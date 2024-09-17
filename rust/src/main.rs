@@ -1,48 +1,50 @@
-extern crate rusoto_core;
-extern crate rusoto_dynamodb;
+use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 
-use std::default::Default;
+use serde::{Deserialize, Serialize};
 
-use once_cell::sync::OnceCell;
+/// This is a made-up example. Requests come into the runtime as unicode
+/// strings in json format, which can map to any structure that implements `serde::Deserialize`
+/// The runtime pays no attention to the contents of the request payload.
+#[derive(Deserialize)]
+struct Request {
+    msg: String,
+}
 
-use rusoto_core::Region;
-use rusoto_dynamodb::{DynamoDb, DynamoDbClient, ListTablesInput};
+/// This is a made-up example of what a response structure may look like.
+/// There is no restriction on what it can be. The runtime requires responses
+/// to be serialized into json. The runtime pays no attention
+/// to the contents of the response payload.
+#[derive(Serialize)]
+struct Response {
+    req_id: String,
+    msg: String,
+    tables: Vec<String>,
+}
 
-use lambda::{handler_fn, Context};
-use serde_json::{json, Value};
+async fn function_handler(ddb_client: &aws_sdk_dynamodb::Client, event: LambdaEvent<Request>) -> Result<Response, Error> {
+        // Prepare the response
+    let result = ddb_client.list_tables()
+        .send().await?;
+    let tables = result.table_names.unwrap();
+    let resp = Response {
+        req_id: event.context.request_id,
+        msg: event.payload.msg,
+        tables,
+    };
 
-type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
-
-fn dynamo_db_client() -> &'static DynamoDbClient {
-    static INSTANCE: OnceCell<DynamoDbClient> = OnceCell::new();
-    INSTANCE.get_or_init(|| {
-        DynamoDbClient::new(Region::UsWest2)
-    })
+    Ok(resp)
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    dynamo_db_client(); // Warm it up during init phase.
-    let func = handler_fn(func);
-    lambda::run(func).await?;
+    tracing::init_default_subscriber();
+    let config = aws_config::load_from_env().await;
+
+    // To initialize state that is used by the actual function implementation.
+    // https://github.com/awslabs/aws-lambda-rust-runtime/blob/main/examples/basic-shared-resource/src/main.rs#L46
+    let ddb_client = &aws_sdk_dynamodb::Client::new(&config);
+    run(service_fn(move |event: LambdaEvent<Request>| async move {
+        Ok::<Response, Error>(function_handler(ddb_client, event).await.unwrap())
+    })).await?;
     Ok(())
-}
-
-async fn func(_event: Value, _: Context) -> Result<Value, Error> {
-    let list_tables_input: ListTablesInput = Default::default();
-
-    match dynamo_db_client().list_tables(list_tables_input).sync() {
-        Ok(output) => {
-          match output.table_names {
-            Some(table_name_list) => {
-              println!("Tables in database:");
-              Ok(json!({ "message": "Found tables", "tables": &table_name_list}))
-            }
-            None => Ok(json!({ "message": "No tables in database!"}))
-          }
-        }
-        Err(error) => {
-            Ok(json!({ "message": format!("Error: {:?}", error)}))
-        }
-    }
 }
