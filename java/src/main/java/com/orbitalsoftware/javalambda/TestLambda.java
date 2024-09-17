@@ -17,8 +17,8 @@ public class TestLambda implements RequestHandler<Void, Map<String, Object>> {
   private static final DynamoDbClient dynamoDbClient;
 
   static {
-    AwsCredentialsProvider credentialsProvider = EnvironmentVariableCredentialsProvider.create();
-    Region region = Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable()));
+    final AwsCredentialsProvider credentialsProvider = EnvironmentVariableCredentialsProvider.create();
+    final Region region = Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable()));
     dynamoDbClient =
         DynamoDbClient.builder()
             .credentialsProvider(credentialsProvider)
@@ -29,8 +29,8 @@ public class TestLambda implements RequestHandler<Void, Map<String, Object>> {
   }
 
   @Override
-  public Map<String, Object> handleRequest(Void input, Context context) {
-    ListTablesResponse response = dynamoDbClient.listTables();
+  public Map<String, Object> handleRequest(final Void input, final Context context) {
+    final ListTablesResponse response = dynamoDbClient.listTables();
     return ImmutableMap.of("message", "found tables", "tables", response.tableNames());
   }
 }
