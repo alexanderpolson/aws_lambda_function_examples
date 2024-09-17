@@ -8,6 +8,9 @@ Each of the implemented Lambdas simply makes a call to Dynamo to determine the t
 
 Care has been taken to front-load any initialization-related code during the actual instantiation of the function, and they don't wait until trying to respond to a request to do so.
 
+# Javva Specifics
+Special care was taken to tune how the Java-based Lambda function starts up in order to keep the cold start times as low as possible, following [these recommendations](https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/).
+
 # Latency Samples
 Each of the calls whose latencies are listed below, are based on values that were exposed from calling the functions via Lambda's AWS console. All results are in milliseconds.
 
@@ -38,3 +41,18 @@ I should note that the cold start was so minimal for Rust, that I dind't call ou
 |382   |10   |
 |75   |   |
 |57   |   |
+
+# Welcome to your CDK TypeScript project
+
+This is a blank project for CDK development with TypeScript.
+
+The `cdk.json` file tells the CDK Toolkit how to execute your app.
+
+## Useful commands
+
+* `npm run build`   compile typescript to js
+* `npm run watch`   watch for changes and compile
+* `npm run test`    perform the jest unit tests
+* `npx cdk deploy`  deploy this stack to your default AWS account/region
+* `npx cdk diff`    compare deployed stack with current state
+* `npx cdk synth`   emits the synthesized CloudFormation template
