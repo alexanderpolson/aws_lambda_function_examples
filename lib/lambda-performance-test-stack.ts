@@ -5,6 +5,7 @@ import {Effect} from 'aws-cdk-lib/aws-iam'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import {Architecture, Code, Runtime, SnapStartConf} from 'aws-cdk-lib/aws-lambda'
 import {Construct} from 'constructs';
+import { RustFunction } from 'cargo-lambda-cdk';
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -52,11 +53,13 @@ export class LambdaPerformanceTestStack extends cdk.Stack {
     });
     javaSnapStartFunction.role?.attachInlinePolicy(listTablesPolicy);
 
-    // TODO: Add Rust Lambda function
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    // Rust Lambda function
+    // https://github.com/cargo-lambda/cargo-lambda-cdk
+    const rustFunction = new RustFunction(this, "RustLambda", {
+      manifestPath: "rust/Cargo.toml",
+      architecture: Architecture.ARM_64,
+      functionName: "RustLambda",
+    });
+    rustFunction.role?.attachInlinePolicy(listTablesPolicy);
   }
 }
