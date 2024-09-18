@@ -1,3 +1,10 @@
+# Notes
+* Need to fully rewrite this doc with instructions.
+  * How to create an account (link to docs for this).
+  * How to setup the AWS ClI (link to docs for this).
+  * How to setup the AWS CDK  (link to docs for this).
+* Invoke command: `aws lambda invoke --function-name JavaLambda --payload `echo '{ "command": "hi" }' | base64` output.json`
+
 # Overview
 Very simple examples of AWS Lambda functions used for performance testing. This came from the need to evaluate whether Rust is a suitable and better performing replacement for Java for AWS Lambda functions.
 
