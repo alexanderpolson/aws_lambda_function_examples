@@ -18,7 +18,7 @@ const FUNCTION_NAMES: [&str; 3] = [
 const PAYLOAD: &str = "{\"msg\": \"Oh, hey there!\"}";
 
 /// The number of requests to make for each stage of testing.
-const REQUEST_COUNT: usize = 3;
+const REQUEST_COUNT: usize = 100;
 
 #[derive(Debug, Error)]
 enum PerformanceTestError {
@@ -35,6 +35,22 @@ struct PerformanceTestResults<'a> {
     function_name: &'a str,
     standard_invokes: Vec<u128>,
     cold_start_invokes: Vec<u128>,
+}
+
+impl<'a> PerformanceTestResults<'a> {
+
+    pub fn summarize(&self) {
+        eprintln!("{}: avg cold start time: {}, avg warm start time: {}",
+                  self.function_name,
+                  Self::avg(&self.cold_start_invokes),
+                  Self::avg(&self.standard_invokes));
+    }
+
+    fn avg(values: &Vec<u128>) -> f32 {
+        let count = values.len();
+        let total = values.iter().sum::<u128>();
+        total as f32 / count as f32
+    }
 }
 
 struct PerformanceTest<'a> {
@@ -139,6 +155,8 @@ async fn main() -> Result<(), PerformanceTestError> {
             .collect::<Vec<_>>();
     let results: Vec<PerformanceTestResults> =
         join_all(testings).await.into_iter().collect::<Result<Vec<_>, PerformanceTestError>>()?;
-    eprintln!("All results: {:?}", results);
+    for result in results {
+        result.summarize()
+    }
     Ok(())
 }
